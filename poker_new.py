@@ -50,21 +50,43 @@ def table_cards(window):
     card_river_image_label = Label(window, image = card_river_image, width =60, height = 70) 
     card_river_image_label.place(x = 730, y = 250)
 
+def folded(window):
+	#send signal to server
+	pass
+
+def called(window):
+	l = [str(i) for i in window.winfo_children()]
+	if '.!entry' not in l:
+		e = Entry(window)
+		e.pack(side = "bottom")	
+		e.bind("<Return>", on_change)
+
+def on_change(e):
+	global p1_money_amt
+	amount = int(e.widget.get())
+	if(amount>0 and amount <= p1_money_amt.get()):
+		e.widget.delete(0, END)
+		p1_money_amt.set(p1_money_amt.get()-amount)
+		e.widget.destroy()	
+
 def players(window):
     #def __init__(self,name,money):
         #self.name = name
-        #self.money = money    
-    global player1_card_1_image,player1_card_2_image
-    global player2_card_1_image,player2_card_2_image
-    global player3_card_1_image,player3_card_2_image
-    global player4_card_1_image,player4_card_2_image
-    global player5_card_1_image,player5_card_2_image
+        #self.money = money
+    global player1_card_1_image,player1_card_2_image,p1_money_amt 
+    global player2_card_1_image,player2_card_2_image,p2_money_amt
+    global player3_card_1_image,player3_card_2_image,p3_money_amt
+    global player4_card_1_image,player4_card_2_image,p4_money_amt
+    global player5_card_1_image,player5_card_2_image,p5_money_amt
+    p1_money_amt = IntVar();p2_money_amt = IntVar(); p3_money_amt = IntVar(); p4_money_amt = IntVar(); p5_money_amt = IntVar()
+    p1_money_amt.set(100);p2_money_amt.set(100);p3_money_amt.set(100);p4_money_amt.set(100);p5_money_amt.set(100) 
+          
 
-    call = Button(window, text = "Call", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red")
+    call = Button(window, text = "Call", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = lambda: called(window))
     call.pack(side = "bottom")
-    fold = Button(window, text = "Fold", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red")
+    fold = Button(window, text = "Fold", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = folded)
     fold.pack(side = "bottom")
-    player1_money = Label(window, text = "100", bg="black", fg="red", font = "Arial 20 bold")
+    player1_money = Label(window, textvariable = p1_money_amt, bg="black", fg="red", font = "Arial 20 bold")
     player1_money.pack(side = "bottom")
     player1_name = Label(window, text = "Client Player 1", bg="black", fg="red", font = "Arial 20 bold")
     player1_name.pack(side = "bottom") 
@@ -87,7 +109,7 @@ def players(window):
     # fold.pack(side = "left")
     player2_move = Label(window, text = "Move = ", bg="black", fg="red", font = "Arial 20 bold")
     player2_move.place(x = 0, y = 530)
-    player2_money = Label(window, text = "100", bg="black", fg="red", font = "Arial 20 bold")
+    player2_money = Label(window, textvariable = p2_money_amt, bg="black", fg="red", font = "Arial 20 bold")
     player2_money.place(x = 0, y = 500)
     player2_name = Label(window, text = "Client Player 2", bg="black", fg="red", font = "Arial 20 bold")
     player2_name.place(x = 0, y = 470)
@@ -110,7 +132,7 @@ def players(window):
     # fold.pack(side = "right")
     player5_move = Label(window, text = "Move = ", bg="black", fg="red", font = "Arial 20 bold")
     player5_move.place(x = 1120, y = 530)
-    player5_money = Label(window, text = "100", bg="black", fg="red", font = "Arial 20 bold")
+    player5_money = Label(window, textvariable = p3_money_amt, bg="black", fg="red", font = "Arial 20 bold")
     player5_money.place(x = 1120, y = 500)
     player5_name = Label(window, text = "Client Player 5", bg="black", fg="red", font = "Arial 20 bold")
     player5_name.place(x = 1120, y = 470)
@@ -133,7 +155,7 @@ def players(window):
     # fold.place(x = 0, y = 160)
     player3_move = Label(window, text = "Move = ", bg="black", fg="red", font = "Arial 20 bold")
     player3_move.place(x = 0, y = 150)
-    player3_money = Label(window, text = "100", bg="black", fg="red", font = "Arial 20 bold")
+    player3_money = Label(window, textvariable = p4_money_amt, bg="black", fg="red", font = "Arial 20 bold")
     player3_money.place(x = 0, y = 120)
     player3_name = Label(window, text = "Client Player 3", bg="black", fg="red", font = "Arial 20 bold")
     player3_name.place(x = 0, y = 90)
@@ -156,7 +178,7 @@ def players(window):
     # fold.place(x = 1195, y = 160)
     player4_move = Label(window, text = "Move = ", bg="black", fg="red", font = "Arial 20 bold")
     player4_move.place(x = 1120, y = 150)
-    player4_money = Label(window, text = "100", bg="black", fg="red", font = "Arial 20 bold")
+    player4_money = Label(window, textvariable = p5_money_amt, bg="black", fg="red", font = "Arial 20 bold")
     player4_money.place(x = 1120, y = 120)
     player4_name = Label(window, text = "Client Player 4", bg="black", fg="red", font = "Arial 20 bold")
     player4_name.place(x = 1120, y = 90)
@@ -180,7 +202,10 @@ def main():
     window = Tk()
     window.title("Poker")
     window.configure(background = "black")
-    center_name = Label(window, text = "Player_name's turn", bg="black", fg="white", font = "Helvetica 30 bold")
+    global gameinfo
+    gameinfo = StringVar()
+    gameinfo.set("Player_name's Turn")
+    center_name = Label(window, textvariable = gameinfo, bg="black", fg="white", font = "Helvetica 30 bold")
     center_name.pack(side="top")
     table(window)
     players(window)
