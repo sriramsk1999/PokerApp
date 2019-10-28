@@ -3,7 +3,7 @@ from PIL import ImageTk, Image
 import os
 
 def table(window):
-    C = Canvas(window, bg="black", height=500, width=1050 ,bd = 0,borderwidth = 0, highlightthickness=0, relief='ridge')
+    C=Canvas(window, bg="black", height=500, width=1050 ,bd = 0,borderwidth = 0,highlightthickness=0, relief='ridge')
     C.pack(side = "top")
     #C.create_rectangle(0, 0, 1000, 450, fill= "black")
     C.create_oval(40,40,1000,460,fill= "green",width = 10, outline = "brown")
@@ -199,6 +199,70 @@ def players(window):
         #self.player = Label(window,)
         
 def main():
+    global ac,c2,c3,c4,c5,c6,c7,c8,c9,c10,kc,jc,qc
+    global ad,d2,d3,d4,d5,d6,d7,d8,d9,d10,kd,jd,qd
+    global ah,h2,h3,h4,h5,h6,h7,h8,h9,h10,kh,jh,qh
+    global AS,s2,s3,s4,s5,s6,s7,s8,s9,s10,ks,js,qs
+
+    #Clubs
+    ac='images/AC.jpg'
+    c2='images/2C.jpg'
+    c3='images/3C.jpg'
+    c4='images/4C.jpg'
+    c5='images/5C.jpg'
+    c6='images/6C.jpg'
+    c7='images/7C.jpg'
+    c8='images/8C.jpg'
+    c9='images/9C.jpg'
+    c10='images/10C.jpg'
+    kc='images/KC.jpg'
+    jc='images/JC.jpg'
+    qc='images/QC.jpg'
+
+    #Diamonds
+    ad='images/AD.jpg'
+    d2='images/2D.jpg'
+    d3='images/3D.jpg'
+    d4='images/4D.jpg'
+    d5='images/5D.jpg'
+    d6='images/6D.jpg'
+    d7='images/7D.jpg'
+    d8='images/8D.jpg'
+    d9='images/9D.jpg'
+    d10='images/10D.jpg'
+    kd='images/KD.jpg'
+    jd='images/JD.jpg'
+    qd='images/QD.jpg'
+
+    #Hearts
+    ah='images/AH.jpg'
+    h2='images/2H.jpg'
+    h3='images/3H.jpg'
+    h4='images/4H.jpg'
+    h5='images/5H.jpg'
+    h6='images/6H.jpg'
+    h7='images/7H.jpg'
+    h8='images/8H.jpg'
+    h9='images/9H.jpg'
+    h10='images/10H.jpg'
+    kh='images/KH.jpg'
+    jh='images/JH.jpg'
+    qh='images/QH.jpg'
+
+    AS='images/AS.jpg'
+    s2='images/2S.jpg'
+    s3='images/3S.jpg'
+    s4='images/4S.jpg'
+    s5='images/5S.jpg'
+    s6='images/6S.jpg'
+    s7='images/7S.jpg'
+    s8='images/8S.jpg'
+    s9='images/9S.jpg'
+    s10='images/10S.jpg'
+    ks='images/KS.jpg'
+    js='images/JS.jpg'
+    qs='images/QS.jpg'
+
     window = Tk()
     window.title("Poker")
     window.configure(background = "black")
