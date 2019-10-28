@@ -19,12 +19,15 @@ def gen_game(nplayers): # readies cards for players and table
     return player,table
 
 def winner(player,table):
-    print("TODO")
+    #To-Do
+    pass
 
 global allcards
-num = list(range(13))
-suit = ['club','spade','diamond','heart']
-allcards = [str(i) + " of " + j for i in num for j in suit]
+num = list(range(1,11))
+num[0] = 'ace';
+num.extend(['jack','queen','king'])
+suit = ['clubs','spades','diamonds','hearts']
+allcards = [(i,j) for i in suit for j in num]
 
 nplayers=int(input())
 player,table = gen_game(nplayers)    

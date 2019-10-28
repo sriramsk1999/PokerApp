@@ -3,7 +3,7 @@ from PIL import ImageTk, Image
 import os
 
 def table(window):
-    C=Canvas(window, bg="black", height=500, width=1050 ,bd = 0,borderwidth = 0,highlightthickness=0, relief='ridge')
+    C = Canvas(window, bg="black", height=500, width=1050 ,bd = 0,borderwidth = 0, highlightthickness=0, relief='ridge')
     C.pack(side = "top")
     #C.create_rectangle(0, 0, 1000, 450, fill= "black")
     C.create_oval(40,40,1000,460,fill= "green",width = 10, outline = "brown")
@@ -11,30 +11,29 @@ def table(window):
 def table_cards(window):
 
     #initial 3 cards to display.
-    global card_1_image,card_2_image,card_3_image,card_4_image,card_river_image
-    card_1_image = Image.open("images/card.jpg")
+    global card_1_image,card_2_image,card_3_image
+    
+    card_1_image = Image.open("images/back.jpg")
     card_1_image = card_1_image.resize((70, 80), Image.ANTIALIAS)
     card_1_image = ImageTk.PhotoImage(card_1_image)
     card_1_image_label = Label(window, image = card_1_image, width =60, height = 70) 
-    #card_1_image_label.place(x = 450, y = 250)
+    card_1_image_label.place(x = 450, y = 250)
 
-
-    # card_2_image = ImageTk.PhotoImage(Image.open("images/card.jpg"))
-    card_2_image = Image.open("images/card.jpg")
+    card_2_image = Image.open("images/back.jpg")
     card_2_image = card_2_image.resize((70, 80), Image.ANTIALIAS)
     card_2_image = ImageTk.PhotoImage(card_2_image)
     card_2_image_label = Label(window, image = card_2_image, width =60, height = 70) 
     card_2_image_label.place(x = 520, y = 250)
 
-    # card_3_image = ImageTk.PhotoImage(Image.open("images/card.jpg"))
-    card_3_image = Image.open("images/card.jpg")
+    card_3_image = Image.open("images/back.jpg")
     card_3_image = card_3_image.resize((70, 80), Image.ANTIALIAS)
     card_3_image = ImageTk.PhotoImage(card_3_image)
     card_3_image_label = Label(window, image = card_3_image, width =60, height = 70) 
     card_3_image_label.place(x = 590, y = 250)
 
+''' Add to separate function
 #if condition to display according to Poker rules.
-
+    global card_4_image,card_river_image
     # card_4_image = ImageTk.PhotoImage(Image.open("images/card.jpg"))
     card_4_image = Image.open("images/card.jpg")
     card_4_image = card_4_image.resize((70, 80), Image.ANTIALIAS)
@@ -49,7 +48,7 @@ def table_cards(window):
     card_river_image = ImageTk.PhotoImage(card_river_image)
     card_river_image_label = Label(window, image = card_river_image, width =60, height = 70) 
     card_river_image_label.place(x = 730, y = 250)
-
+'''
 def folded(window):
 	#send signal to server
 	pass
@@ -69,7 +68,7 @@ def on_change(e):
 		p1_money_amt.set(p1_money_amt.get()-amount)
 		e.widget.destroy()	
 
-def players(window):
+def players(window,card1,card2):
     #def __init__(self,name,money):
         #self.name = name
         #self.money = money
@@ -92,12 +91,12 @@ def players(window):
     player1_name.pack(side = "bottom") 
 
 
-    player1_card_1_image = Image.open("images/card.jpg")
+    player1_card_1_image = Image.open("images/"+card1+".jpg")
     player1_card_1_image = player1_card_1_image.resize((40, 50), Image.ANTIALIAS)
     player1_card_1_image = ImageTk.PhotoImage(player1_card_1_image)
     player1_card_1_image_label = Label(window, image = player1_card_1_image, width =30, height = 40) 
     player1_card_1_image_label.place(x = 640, y = 550)
-    player1_card_2_image = Image.open("images/card.jpg")
+    player1_card_2_image = Image.open("images/"+card2+".jpg")
     player1_card_2_image = player1_card_2_image.resize((40, 50), Image.ANTIALIAS)
     player1_card_2_image = ImageTk.PhotoImage(player1_card_2_image)
     player1_card_2_image_label = Label(window, image = player1_card_2_image, width =30, height = 40) 
@@ -115,12 +114,12 @@ def players(window):
     player2_name.place(x = 0, y = 470)
 
 
-    player2_card_1_image = Image.open("images/card.jpg")
+    player2_card_1_image = Image.open("images/back.jpg")
     player2_card_1_image = player2_card_1_image.resize((40, 50), Image.ANTIALIAS)
     player2_card_1_image = ImageTk.PhotoImage(player2_card_1_image)
     player2_card_1_image_label = Label(window, image = player2_card_1_image, width =30, height = 40) 
     player2_card_1_image_label.place(x = 5, y = 420)
-    player2_card_2_image = Image.open("images/card.jpg")
+    player2_card_2_image = Image.open("images/back.jpg")
     player2_card_2_image = player2_card_2_image.resize((40, 50), Image.ANTIALIAS)
     player2_card_2_image = ImageTk.PhotoImage(player2_card_2_image)
     player2_card_2_image_label = Label(window, image = player2_card_2_image, width =30, height = 40) 
@@ -138,12 +137,12 @@ def players(window):
     player5_name.place(x = 1120, y = 470)
 
 
-    player5_card_1_image = Image.open("images/card.jpg")
+    player5_card_1_image = Image.open("images/back.jpg")
     player5_card_1_image = player5_card_1_image.resize((40, 50), Image.ANTIALIAS)
     player5_card_1_image = ImageTk.PhotoImage(player5_card_1_image)
     player5_card_1_image_label = Label(window, image = player5_card_1_image, width =30, height = 40) 
     player5_card_1_image_label.place(x = 1120, y = 420)
-    player5_card_2_image = Image.open("images/card.jpg")
+    player5_card_2_image = Image.open("images/back.jpg")
     player5_card_2_image = player5_card_2_image.resize((40, 50), Image.ANTIALIAS)
     player5_card_2_image = ImageTk.PhotoImage(player5_card_2_image)
     player5_card_2_image_label = Label(window, image = player5_card_2_image, width =30, height = 40) 
@@ -161,12 +160,12 @@ def players(window):
     player3_name.place(x = 0, y = 90)
 
 
-    player3_card_1_image = Image.open("images/card.jpg")
+    player3_card_1_image = Image.open("images/back.jpg")
     player3_card_1_image = player3_card_1_image.resize((40, 50), Image.ANTIALIAS)
     player3_card_1_image = ImageTk.PhotoImage(player3_card_1_image)
     player3_card_1_image_label = Label(window, image = player3_card_1_image, width =30, height = 40) 
     player3_card_1_image_label.place(x = 5, y = 40)
-    player3_card_2_image = Image.open("images/card.jpg")
+    player3_card_2_image = Image.open("images/back.jpg")
     player3_card_2_image = player3_card_2_image.resize((40, 50), Image.ANTIALIAS)
     player3_card_2_image = ImageTk.PhotoImage(player3_card_2_image)
     player3_card_2_image_label = Label(window, image = player3_card_2_image, width =30, height = 40) 
@@ -184,84 +183,23 @@ def players(window):
     player4_name.place(x = 1120, y = 90)
     
    
-    player4_card_1_image = Image.open("images/card.jpg")
+    player4_card_1_image = Image.open("images/back.jpg")
     player4_card_1_image = player4_card_1_image.resize((40, 50), Image.ANTIALIAS)
     player4_card_1_image = ImageTk.PhotoImage(player4_card_1_image)
     player4_card_1_image_label = Label(window, image = player4_card_1_image, width =30, height = 40) 
     player4_card_1_image_label.place(x = 1120, y = 40)
-    player4_card_2_image = Image.open("images/card.jpg")
+    player4_card_2_image = Image.open("images/back.jpg")
     player4_card_2_image = player4_card_2_image.resize((40, 50), Image.ANTIALIAS)
     player4_card_2_image = ImageTk.PhotoImage(player4_card_2_image)
     player4_card_2_image_label = Label(window, image = player4_card_2_image, width =30, height = 40) 
     player4_card_2_image_label.place(x = 1160, y = 40)
 
-    #def insert(self,name,money):
-        #self.player = Label(window,)
-        
 def main():
-    global ac,c2,c3,c4,c5,c6,c7,c8,c9,c10,kc,jc,qc
-    global ad,d2,d3,d4,d5,d6,d7,d8,d9,d10,kd,jd,qd
-    global ah,h2,h3,h4,h5,h6,h7,h8,h9,h10,kh,jh,qh
-    global AS,s2,s3,s4,s5,s6,s7,s8,s9,s10,ks,js,qs
-
-    #Clubs
-    ac='images/AC.jpg'
-    c2='images/2C.jpg'
-    c3='images/3C.jpg'
-    c4='images/4C.jpg'
-    c5='images/5C.jpg'
-    c6='images/6C.jpg'
-    c7='images/7C.jpg'
-    c8='images/8C.jpg'
-    c9='images/9C.jpg'
-    c10='images/10C.jpg'
-    kc='images/KC.jpg'
-    jc='images/JC.jpg'
-    qc='images/QC.jpg'
-
-    #Diamonds
-    ad='images/AD.jpg'
-    d2='images/2D.jpg'
-    d3='images/3D.jpg'
-    d4='images/4D.jpg'
-    d5='images/5D.jpg'
-    d6='images/6D.jpg'
-    d7='images/7D.jpg'
-    d8='images/8D.jpg'
-    d9='images/9D.jpg'
-    d10='images/10D.jpg'
-    kd='images/KD.jpg'
-    jd='images/JD.jpg'
-    qd='images/QD.jpg'
-
-    #Hearts
-    ah='images/AH.jpg'
-    h2='images/2H.jpg'
-    h3='images/3H.jpg'
-    h4='images/4H.jpg'
-    h5='images/5H.jpg'
-    h6='images/6H.jpg'
-    h7='images/7H.jpg'
-    h8='images/8H.jpg'
-    h9='images/9H.jpg'
-    h10='images/10H.jpg'
-    kh='images/KH.jpg'
-    jh='images/JH.jpg'
-    qh='images/QH.jpg'
-
-    AS='images/AS.jpg'
-    s2='images/2S.jpg'
-    s3='images/3S.jpg'
-    s4='images/4S.jpg'
-    s5='images/5S.jpg'
-    s6='images/6S.jpg'
-    s7='images/7S.jpg'
-    s8='images/8S.jpg'
-    s9='images/9S.jpg'
-    s10='images/10S.jpg'
-    ks='images/KS.jpg'
-    js='images/JS.jpg'
-    qs='images/QS.jpg'
+    num = list(range(1,11))
+    num[0] = 'ace';
+    num.extend(['jack','queen','king'])
+    suit = ['clubs','spades','diamonds','hearts']
+    cards = {(i,j):str(j)+" of "+i for i in suit for j in num}
 
     window = Tk()
     window.title("Poker")
@@ -272,8 +210,7 @@ def main():
     center_name = Label(window, textvariable = gameinfo, bg="black", fg="white", font = "Helvetica 30 bold")
     center_name.pack(side="top")
     table(window)
-    players(window)
+    players(window, cards[('clubs',2)],cards[('hearts','queen')])
     table_cards(window)
-    # cards()
     window.mainloop()
 main()
