@@ -2,6 +2,37 @@ from tkinter import *
 from PIL import ImageTk, Image
 import string
 
+class Player:
+    def __init__(self,name):
+        self.money=IntVar()
+        self.money.set(100)
+        self.name=name
+
+    def create_label(self,window,*args):
+        self.moneyLabel = Label(window, textvariable = self.money, bg="black", fg="red", font = "Arial 20 bold")
+        if(args):
+            self.moneyLabel.place(x=args[0],y=args[1])
+        else:
+            self.moneyLabel.pack(side = "bottom")
+        self.playerLabel = Label(window, text = self.name, bg="black", fg="red", font = "Arial 20 bold")
+        if(args):
+            self.playerLabel.place(x=args[2],y=args[3])
+        else:
+            self.playerLabel.pack(side = "bottom")
+
+    def create_image(self,window,card1,card2,x1,y1,x2,y2):
+        self.card1_image = Image.open("images/"+card1+".jpg")
+        self.card1_image = self.card1_image.resize((40, 50), Image.ANTIALIAS)
+        self.card1_image = ImageTk.PhotoImage(self.card1_image)
+        self.card1_image_label = Label(window, image = self.card1_image, width =30, height = 40) 
+        self.card1_image_label.place(x = x1, y = y1)
+
+        self.card2_image = Image.open("images/"+card2+".jpg")
+        self.card2_image = self.card2_image.resize((40, 50), Image.ANTIALIAS)
+        self.card2_image = ImageTk.PhotoImage(self.card2_image)
+        self.card2_image_label = Label(window, image = self.card2_image, width =30, height = 40) 
+        self.card2_image_label.place(x = x2, y = y2)     
+
 def table(window):
     C = Canvas(window, bg="black", height=500, width=1050 ,bd = 0,borderwidth = 0, highlightthickness=0, relief='ridge')
     C.pack(side = "top")
@@ -54,8 +85,10 @@ def add_card(window,cardnum,card): #displaying turn and river
 
 def folded():
 	#send signal to server
-    gameinfo.set("Player_1 folds")
-    pass
+    p1.playerLabel.config(fg="yellow")
+    gameinfo.set(p1.name+" folds")
+    call["state"] = "disabled"
+    fold["state"] = "disabled"
 
 def called(window): #on button click
     l = [str(i) for i in window.winfo_children()] #window.winfo_children() returns list of all widgets in the winodw
@@ -66,147 +99,91 @@ def called(window): #on button click
 
 def on_change(e):
     amount = int(e.widget.get())
-    if(amount>0 and amount <= player_amt[0].get()):  #if valid amount
+    if(amount>0 and amount <= p1.money.get()):  #if valid amount
         e.widget.delete(0, END)
-        player_amt[0].set(player_amt[0].get()-amount)
+        p1.money.set(p1.money.get()-amount)
         e.widget.destroy()
-        gameinfo.set("Player_1 bets "+str(amount))
+        gameinfo.set(p1.name+" bets "+str(amount))
         pot.set(pot.get()+amount)	
 
-def players(window,card1,card2):
-    global player1_card_1_image,player1_card_2_image 
-    global player2_card_1_image,player2_card_2_image
-    global player3_card_1_image,player3_card_2_image
-    global player4_card_1_image,player4_card_2_image
-    global player5_card_1_image,player5_card_2_image
-    global player_amt
-    player_amt = [IntVar(),IntVar(),IntVar(),IntVar(),IntVar()]
-    for i in player_amt:
-        i.set(100)          
-
+def players(window,card1,card2):      
+    global call,fold
     call = Button(window, text = "Call", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = lambda: called(window))
     call.pack(side = "bottom")
     fold = Button(window, text = "Fold", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = folded)
     fold.pack(side = "bottom")
-    player1_money = Label(window, textvariable = player_amt[0], bg="black", fg="red", font = "Arial 20 bold")
-    player1_money.pack(side = "bottom")
-    player1_name = Label(window, text = "Client Player 1", bg="black", fg="red", font = "Arial 20 bold")
-    player1_name.pack(side = "bottom") 
 
+    global p1,p2,p3,p4,p5
+    p1 = Player("player1")
+    p1.create_label(window)
+    p1.create_image(window,card1,card2,640,550,600,550)
 
-    player1_card_1_image = Image.open("images/"+card1+".jpg")
-    player1_card_1_image = player1_card_1_image.resize((40, 50), Image.ANTIALIAS)
-    player1_card_1_image = ImageTk.PhotoImage(player1_card_1_image)
-    player1_card_1_image_label = Label(window, image = player1_card_1_image, width =30, height = 40) 
-    player1_card_1_image_label.place(x = 640, y = 550)
-    player1_card_2_image = Image.open("images/"+card2+".jpg")
-    player1_card_2_image = player1_card_2_image.resize((40, 50), Image.ANTIALIAS)
-    player1_card_2_image = ImageTk.PhotoImage(player1_card_2_image)
-    player1_card_2_image_label = Label(window, image = player1_card_2_image, width =30, height = 40) 
-    player1_card_2_image_label.place(x = 600, y = 550)
-    
+    p2 = Player("player2")
+    p2.create_label(window,0,500,0,470)
+    p2.create_image(window,"back","back",5,420,45,420)
 
-    player2_move = Label(window, text = "Move = ", bg="black", fg="red", font = "Arial 20 bold")
-    player2_move.place(x = 0, y = 530)
-    player2_money = Label(window, textvariable = player_amt[1], bg="black", fg="red", font = "Arial 20 bold")
-    player2_money.place(x = 0, y = 500)
-    player2_name = Label(window, text = "Client Player 2", bg="black", fg="red", font = "Arial 20 bold")
-    player2_name.place(x = 0, y = 470)
+    p3 = Player("player3")
+    p3.create_label(window,0,120,0,90)
+    p3.create_image(window,"back","back",5,40,45,40)
 
+    p4 = Player("player4")
+    p4.create_label(window,1120,120,1120,90)
+    p4.create_image(window,"back","back",1120,40,1160,40)
 
-    player2_card_1_image = Image.open("images/back.jpg")
-    player2_card_1_image = player2_card_1_image.resize((40, 50), Image.ANTIALIAS)
-    player2_card_1_image = ImageTk.PhotoImage(player2_card_1_image)
-    player2_card_1_image_label = Label(window, image = player2_card_1_image, width =30, height = 40) 
-    player2_card_1_image_label.place(x = 5, y = 420)
-    player2_card_2_image = Image.open("images/back.jpg")
-    player2_card_2_image = player2_card_2_image.resize((40, 50), Image.ANTIALIAS)
-    player2_card_2_image = ImageTk.PhotoImage(player2_card_2_image)
-    player2_card_2_image_label = Label(window, image = player2_card_2_image, width =30, height = 40) 
-    player2_card_2_image_label.place(x = 45, y = 420)
+    p5 = Player("player5")
+    p5.create_label(window,1120,500,1120,470)
+    p5.create_image(window,"back","back",1120,420,1160,420)        
 
-    player5_move = Label(window, text = "Move = ", bg="black", fg="red", font = "Arial 20 bold")
-    player5_move.place(x = 1120, y = 530)
-    player5_money = Label(window, textvariable = player_amt[2], bg="black", fg="red", font = "Arial 20 bold")
-    player5_money.place(x = 1120, y = 500)
-    player5_name = Label(window, text = "Client Player 5", bg="black", fg="red", font = "Arial 20 bold")
-    player5_name.place(x = 1120, y = 470)
+def other_player_fold(player_who_folded):
+    player_who_folded.playerLabel.config(fg="yellow")
+    gameinfo.set(player_who_folded.name+ "has folded")
 
+def other_player_call(player_who_called,amount):
+    pot_change = pot.get()+amount
+    pot.set(pot_change)
+    player_who_called.money.set(player_who_called.money.get()-amount)
+    gameinfo.set(player_who_called.name+" has called "+ str(amount))
 
-    player5_card_1_image = Image.open("images/back.jpg")
-    player5_card_1_image = player5_card_1_image.resize((40, 50), Image.ANTIALIAS)
-    player5_card_1_image = ImageTk.PhotoImage(player5_card_1_image)
-    player5_card_1_image_label = Label(window, image = player5_card_1_image, width =30, height = 40) 
-    player5_card_1_image_label.place(x = 1120, y = 420)
-    player5_card_2_image = Image.open("images/back.jpg")
-    player5_card_2_image = player5_card_2_image.resize((40, 50), Image.ANTIALIAS)
-    player5_card_2_image = ImageTk.PhotoImage(player5_card_2_image)
-    player5_card_2_image_label = Label(window, image = player5_card_2_image, width =30, height = 40) 
-    player5_card_2_image_label.place(x = 1160, y = 420)
+def turn(player):
+    if player.name == p1.name:
+        call["state"] = "normal"
+        fold["state"] = "normal"
+    else:
+        call["state"] = "disabled"
+        fold["state"] = "disabled"
 
-    player3_move = Label(window, text = "Move = ", bg="black", fg="red", font = "Arial 20 bold")
-    player3_move.place(x = 0, y = 150)
-    player3_money = Label(window, textvariable = player_amt[3], bg="black", fg="red", font = "Arial 20 bold")
-    player3_money.place(x = 0, y = 120)
-    player3_name = Label(window, text = "Client Player 3", bg="black", fg="red", font = "Arial 20 bold")
-    player3_name.place(x = 0, y = 90)
-
-
-    player3_card_1_image = Image.open("images/back.jpg")
-    player3_card_1_image = player3_card_1_image.resize((40, 50), Image.ANTIALIAS)
-    player3_card_1_image = ImageTk.PhotoImage(player3_card_1_image)
-    player3_card_1_image_label = Label(window, image = player3_card_1_image, width =30, height = 40) 
-    player3_card_1_image_label.place(x = 5, y = 40)
-    player3_card_2_image = Image.open("images/back.jpg")
-    player3_card_2_image = player3_card_2_image.resize((40, 50), Image.ANTIALIAS)
-    player3_card_2_image = ImageTk.PhotoImage(player3_card_2_image)
-    player3_card_2_image_label = Label(window, image = player3_card_2_image, width =30, height = 40) 
-    player3_card_2_image_label.place(x = 45, y = 40)
-
-    player4_move = Label(window, text = "Move = ", bg="black", fg="red", font = "Arial 20 bold")
-    player4_move.place(x = 1120, y = 150)
-    player4_money = Label(window, textvariable = player_amt[4], bg="black", fg="red", font = "Arial 20 bold")
-    player4_money.place(x = 1120, y = 120)
-    player4_name = Label(window, text = "Client Player 4", bg="black", fg="red", font = "Arial 20 bold")
-    player4_name.place(x = 1120, y = 90)
-    
-   
-    player4_card_1_image = Image.open("images/back.jpg")
-    player4_card_1_image = player4_card_1_image.resize((40, 50), Image.ANTIALIAS)
-    player4_card_1_image = ImageTk.PhotoImage(player4_card_1_image)
-    player4_card_1_image_label = Label(window, image = player4_card_1_image, width =30, height = 40) 
-    player4_card_1_image_label.place(x = 1120, y = 40)
-    player4_card_2_image = Image.open("images/back.jpg")
-    player4_card_2_image = player4_card_2_image.resize((40, 50), Image.ANTIALIAS)
-    player4_card_2_image = ImageTk.PhotoImage(player4_card_2_image)
-    player4_card_2_image_label = Label(window, image = player4_card_2_image, width =30, height = 40) 
-    player4_card_2_image_label.place(x = 1160, y = 40)
-
+'''
+Server Messages
+    function               message from server            comments
+    players            "player_cards,card1,card2"      displays all player cards
+    turn               "turn,player_name"              which player's turn it currently is
+    table_cards        "theflop,card1,card2,card3"     displays 3 cards on table
+    add_card           "theturn,card4"                 displays fourth card
+    add_card           "theriver,card5"                displays fifth card
+    other_player_call  "other_call,player_name,amount" the player who called and how much money 
+    other_player_fold  "other_fold,player_name"        the player who folded
+    round_over         "round_over,winner_name"        who won the round
+    game_over          "game_over,winner_name"         who won the game
+''' 
 def server_listen(window): #listens for messages from server
     for i in range(len(flags)):
         flags[i]=True
-    '''
-    To-Do
-    Messages from server
-        flop - done
-        turn - done
-        river - done
-        fold - when someone folds - {change colour of their name, change gameinfo}
-        call - when someone else calls - {add money to pot, change gameinfo}
-        round over - {change gameinfo to display winner,display all cards,remove all cards from table, update money of each player, reset pot, change player_name colours back to normal ...}
-        game over - display winner
-    '''        
-    if(flags[0] and 'card_1_image' not in globals()):  #if flag is set and the image is not yet created
+    #turn(p1)
+    if(flags[0] and 'p1' not in globals()):
+        players(window, cards[('clubs',2)],cards[('hearts','queen')])
+    #other_player_fold(p3)
+    #other_player_call(p2,50)     
+    if(flags[1] and 'card_1_image' not in globals()):  #if flag is set and the image is not yet created
         table_cards(window,cards[('clubs','king')],cards[('hearts',2)],cards[('diamonds','ace')] )
-    if(flags[1] and 'card_4_image' not in globals()):
+    if(flags[2] and 'card_4_image' not in globals()):
         add_card(window,4,cards[('clubs',2)])
-    if(flags[2] and 'card_river_image' not in globals()):
+    if(flags[3] and 'card_river_image' not in globals()):
         add_card(window,5,cards[('clubs',5)])            
     window.after(10,server_listen,window)
 
 def main():
     global gameinfo,pot,flags,cards
-    flags=[False,False,False] #flags for flop, turn, river
+    flags=[False,False,False,False] #flags for player_cards,flop, turn, river
     num = list(range(1,11))
     num[0] = 'ace';
     num.extend(['jack','queen','king'])
@@ -223,7 +200,6 @@ def main():
     center_name = Label(window, textvariable = gameinfo, bg="black", fg="white", font = "Helvetica 30 bold")
     center_name.pack(side="top")
     table(window)
-    players(window, cards[('clubs',2)],cards[('hearts','queen')])
 
     window.after(10,server_listen,window)
     window.mainloop()
