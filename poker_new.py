@@ -85,8 +85,8 @@ def add_card(window,cardnum,card): #displaying turn and river
 
 def folded():
 	#send signal to server
-    p1.playerLabel.config(fg="yellow")
-    gameinfo.set(p1.name+" folds")
+    players[0].playerLabel.config(fg="yellow")
+    gameinfo.set(players[0].name+" folds")
     call["state"] = "disabled"
     fold["state"] = "disabled"
 
@@ -99,21 +99,21 @@ def called(window): #on button click
 
 def on_change(e):
     amount = int(e.widget.get())
-    if(amount>0 and amount <= p1.money.get()):  #if valid amount
+    if(amount>0 and amount <= players[0].money.get()):  #if valid amount
         e.widget.delete(0, END)
-        p1.money.set(p1.money.get()-amount)
+        players[0].money.set(players[0].money.get()-amount)
         e.widget.destroy()
-        gameinfo.set(p1.name+" bets "+str(amount))
+        gameinfo.set(players[0].name+" bets "+str(amount))
         pot.set(pot.get()+amount)	
 
-def players(window,card1,card2):      
+def create_players(window,card1,card2):      
     global call,fold
     call = Button(window, text = "Call", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = lambda: called(window))
     call.pack(side = "bottom")
     fold = Button(window, text = "Fold", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = folded)
     fold.pack(side = "bottom")
 
-    global p1,p2,p3,p4,p5
+    global players
     p1 = Player("player1")
     p1.create_label(window)
     p1.create_image(window,card1,card2,640,550,600,550)
@@ -133,6 +133,7 @@ def players(window,card1,card2):
     p5 = Player("player5")
     p5.create_label(window,1120,500,1120,470)
     p5.create_image(window,"back","back",1120,420,1160,420)        
+    players=[p1,p2,p3,p4,p5]
 
 def other_player_fold(player_who_folded):
     player_who_folded.playerLabel.config(fg="yellow")
@@ -145,45 +146,57 @@ def other_player_call(player_who_called,amount):
     gameinfo.set(player_who_called.name+" has called "+ str(amount))
 
 def turn(player):
-    if player.name == p1.name:
+    if player.name == players[0].name:
         call["state"] = "normal"
         fold["state"] = "normal"
     else:
         call["state"] = "disabled"
         fold["state"] = "disabled"
 
+def game_over(window):
+    window.destroy()
+
 '''
 Server Messages
-    function               message from server            comments
-    players            "player_cards,card1,card2"      displays all player cards
-    turn               "turn,player_name"              which player's turn it currently is
-    table_cards        "theflop,card1,card2,card3"     displays 3 cards on table
-    add_card           "theturn,card4"                 displays fourth card
-    add_card           "theriver,card5"                displays fifth card
-    other_player_call  "other_call,player_name,amount" the player who called and how much money 
-    other_player_fold  "other_fold,player_name"        the player who folded
-    round_over         "round_over,winner_name"        who won the round
-    game_over          "game_over,winner_name"         who won the game
+    function               message from server                 comments
+    create_players     "player_cards,card1,card2"          displays all player cards
+    turn               "turn,player_name"                  which player's turn it currently is
+    table_cards        "theflop,card1,card2,card3"         displays 3 cards on table
+    add_card           "theturn,card4"                     displays fourth card
+    add_card           "theriver,card5"                    displays fifth card
+    other_player_call  "other_call,player_name,amount"     the player who called and how much money 
+    other_player_fold  "other_fold,player_name"            the player who folded
+    round_over         "round_over,winner_name,all cards"  who won the round, display all other players' cards
+    game_over          "game_over,winner_name"             who won the game
 ''' 
 def server_listen(window): #listens for messages from server
+    #msg="game_over,player5"
+    flags=[False,False,False,False] #flags for player_cards, flop, turn, river
+    msg="randomstring"
+    msg=msg.split(',')
+
     for i in range(len(flags)):
         flags[i]=True
-    #turn(p1)
-    if(flags[0] and 'p1' not in globals()):
-        players(window, cards[('clubs',2)],cards[('hearts','queen')])
-    #other_player_fold(p3)
-    #other_player_call(p2,50)     
+    if(flags[0] and 'players' not in globals()):
+        create_players(window, cards[('clubs',2)],cards[('hearts','queen')])
+    #turn(players[1])
+    #other_player_fold(players[2])
+    #other_player_call(players[1],50)     
     if(flags[1] and 'card_1_image' not in globals()):  #if flag is set and the image is not yet created
         table_cards(window,cards[('clubs','king')],cards[('hearts',2)],cards[('diamonds','ace')] )
     if(flags[2] and 'card_4_image' not in globals()):
         add_card(window,4,cards[('clubs',2)])
     if(flags[3] and 'card_river_image' not in globals()):
-        add_card(window,5,cards[('clubs',5)])            
-    window.after(10,server_listen,window)
+        add_card(window,5,cards[('clubs',5)])  
+    if(msg[0]=="game_over"):
+        for i in players:
+            if(msg[1]==i.name):
+                gameinfo.set(i.name+" has won the game!")
+                window.after(5000,game_over,window) #end game after 5 seconds 
+    window.after(10,server_listen,window) #calls itself every 10 milliseconds listening for messages from server
 
 def main():
-    global gameinfo,pot,flags,cards
-    flags=[False,False,False,False] #flags for player_cards,flop, turn, river
+    global gameinfo,pot,cards
     num = list(range(1,11))
     num[0] = 'ace';
     num.extend(['jack','queen','king'])
