@@ -1,5 +1,4 @@
 import random
-import pprint
 from poker_data import *
 import itertools
 from copy import deepcopy
@@ -65,6 +64,6 @@ def eval7(hand):
 
 nplayers=int(input())
 player,table = gen_game(nplayers)    
-pprint.pprint(player)
-pprint.pprint(table)
+print(player)
+print(table)
 winner(player,table)

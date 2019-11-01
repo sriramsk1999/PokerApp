@@ -1,6 +1,7 @@
 from tkinter import *
 from PIL import ImageTk, Image
 import string
+import socket
 
 class Player:
     def __init__(self,name):
@@ -109,8 +110,10 @@ def on_change(e):
 def create_players(window,card1,card2):      
     global call,fold
     call = Button(window, text = "Call", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = lambda: called(window))
+    call["state"] = "disabled"   #disabled on startup until it is your turn
     call.pack(side = "bottom")
     fold = Button(window, text = "Fold", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = folded)
+    fold["state"] = "disabled"
     fold.pack(side = "bottom")
 
     global players
@@ -156,18 +159,31 @@ def turn(player):
 def game_over(window):
     window.destroy()
 
+def change_card(player,new_card1,new_card2):
+    player.card1_image = Image.open("images/"+new_card1+".jpg")
+    player.card1_image = player.card1_image.resize((40, 50), Image.ANTIALIAS)
+    player.card1_image = ImageTk.PhotoImage(player.card1_image)
+    player.card1_image_label.configure(image=player.card1_image)
+
+    player.card2_image = Image.open("images/"+new_card2+".jpg")
+    player.card2_image = player.card2_image.resize((40, 50), Image.ANTIALIAS)
+    player.card2_image = ImageTk.PhotoImage(player.card2_image)
+    player.card2_image_label.configure(image=player.card2_image)    
+
 '''
 Server Messages
-    function               message from server                 comments
-    create_players     "player_cards,card1,card2"          displays all player cards
-    turn               "turn,player_name"                  which player's turn it currently is
-    table_cards        "theflop,card1,card2,card3"         displays 3 cards on table
-    add_card           "theturn,card4"                     displays fourth card
-    add_card           "theriver,card5"                    displays fifth card
-    other_player_call  "other_call,player_name,amount"     the player who called and how much money 
-    other_player_fold  "other_fold,player_name"            the player who folded
-    round_over         "round_over,winner_name,all cards"  who won the round, display all other players' cards
-    game_over          "game_over,winner_name"             who won the game
+    function               message from server                              comments
+
+    create_players     "create_players,card1,card2,player_names_list"     displays all player cards
+    turn               "turn,player_name"                                 which player's turn it currently is
+    table_cards        "theflop,card1,card2,card3"                        displays 3 cards on table
+    add_card           "theturn,card4"                                    displays fourth card
+    add_card           "theriver,card5"                                   displays fifth card
+    other_player_call  "other_call,player_name,amount"                    the player who called and how much money 
+    other_player_fold  "other_fold,player_name"                           the player who folded
+    round_over         "round_over,winner_name,all cards"                 who won the round, display all other players' cards
+    player_elim        "player_elim,player_name"                          a player who got eliminated(include if condition if you get eliminated)
+    game_over          "game_over,winner_name"                            who won the game
 ''' 
 def server_listen(window): #listens for messages from server
     #msg="game_over,player5"
@@ -181,7 +197,8 @@ def server_listen(window): #listens for messages from server
         create_players(window, cards[('clubs',2)],cards[('hearts','queen')])
     #turn(players[1])
     #other_player_fold(players[2])
-    #other_player_call(players[1],50)     
+    #other_player_call(players[1],50)
+    change_card(players[2],cards[('clubs',2)],cards[('hearts','queen')])     
     if(flags[1] and 'card_1_image' not in globals()):  #if flag is set and the image is not yet created
         table_cards(window,cards[('clubs','king')],cards[('hearts',2)],cards[('diamonds','ace')] )
     if(flags[2] and 'card_4_image' not in globals()):
