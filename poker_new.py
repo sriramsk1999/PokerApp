@@ -86,7 +86,7 @@ def add_card(window,cardnum,card): #displaying turn and river
 
 def folded():
     msg = 'fold'+players[0].name
-    client_socket.sendto(msg.encode(),addr)
+    #client_socket.sendto(msg.encode(),addr)
 
     players[0].playerLabel.config(fg="yellow")
     gameinfo.set(players[0].name+" folds")
@@ -110,7 +110,7 @@ def on_change(e):
         pot.set(pot.get()+amount)
 
     msg = 'call'+players[0].name+str(amount)
-    client_socket.sendto(msg.encode(),addr)
+    #client_socket.sendto(msg.encode(),addr)
     	
 
 def create_players(window,card1,card2):      
@@ -218,6 +218,23 @@ def server_listen(window): #listens for messages from server
                 window.after(5000,game_over,window) #end game after 5 seconds 
     window.after(10,server_listen,window) #calls itself every 10 milliseconds listening for messages from server
 
+def join_game():
+    popup = Tk()
+    popup.title("Enter name")
+    entry = Entry(popup)
+    entry.pack(side='bottom') 
+    entry.bind("<Return>", get_name)
+    popup.mainloop()
+
+def get_name(e):
+    pname=e.widget.get()
+    popup = e.widget.master
+    popup.destroy()
+
+    #msg = 'join' + pname
+    #client_socket.sendto(msg.encode(),addr)
+
+
 def main():
     global gameinfo,pot,cards,client_socket,addr
     ip = '127.0.0.1'  #change later
@@ -229,6 +246,8 @@ def main():
     #num.extend(['J','Q','K'])
     #suit = ['C','D','H','S']
     #cards = [str(j)+i for i in suit for j in num]
+
+    join_game()
 
     window = Tk()
     window.title("Poker")
