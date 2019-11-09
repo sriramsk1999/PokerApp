@@ -200,17 +200,17 @@ def server_listen(window): #listens for messages from server
     for i in range(len(flags)):
         flags[i]=True
     if(flags[0] and 'players' not in globals()):
-        create_players(window, cards[('clubs',2)],cards[('hearts','queen')])
+        create_players(window, '2C','QH')
     #turn(players[1])
     #other_player_fold(players[2])
     #other_player_call(players[1],50)
-    change_card(players[2],cards[('clubs',2)],cards[('hearts','queen')])     
+    change_card(players[2],'2C','QH')     
     if(flags[1] and 'card_1_image' not in globals()):  #if flag is set and the image is not yet created
-        table_cards(window,cards[('clubs','king')],cards[('hearts',2)],cards[('diamonds','ace')] )
+        table_cards(window,'KC','2H','AD' )
     if(flags[2] and 'card_4_image' not in globals()):
-        add_card(window,4,cards[('clubs',2)])
+        add_card(window,4,'2C')
     if(flags[3] and 'card_river_image' not in globals()):
-        add_card(window,5,cards[('clubs',5)])  
+        add_card(window,5,'5C')  
     if(msg[0]=="game_over"):
         for i in players:
             if(msg[1]==i.name):
@@ -224,11 +224,11 @@ def main():
     port = 12000
     addr = (ip,port)
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    num = list(range(1,11))
-    num[0] = 'ace';
-    num.extend(['jack','queen','king'])
-    suit = ['clubs','spades','diamonds','hearts']
-    cards = {(i,j):str(j)+" of "+i for i in suit for j in num}
+    #num = list(range(1,11))
+    #num[0] = 'A';
+    #num.extend(['J','Q','K'])
+    #suit = ['C','D','H','S']
+    #cards = [str(j)+i for i in suit for j in num]
 
     window = Tk()
     window.title("Poker")

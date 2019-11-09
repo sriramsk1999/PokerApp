@@ -11,7 +11,7 @@ _PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
 _DECK = [_RANKS[rank] | _SUITS[suit] | _PRIMES[rank] for rank, suit in 
     itertools.product(range(13), range(4))]
 
-SUITS = 'cdhs'
+SUITS = 'CDHS'
 RANKS = '23456789TJQKA'
 DECK = [''.join(s) for s in itertools.product(RANKS, SUITS)]
 LOOKUP = dict(zip(DECK, _DECK))
