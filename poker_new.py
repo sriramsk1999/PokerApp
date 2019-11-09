@@ -85,7 +85,9 @@ def add_card(window,cardnum,card): #displaying turn and river
         gameinfo.set("River")
 
 def folded():
-	#send signal to server
+    msg = 'fold'+players[0].name
+    client_socket.sendto(msg.encode(),addr)
+
     players[0].playerLabel.config(fg="yellow")
     gameinfo.set(players[0].name+" folds")
     call["state"] = "disabled"
@@ -105,7 +107,11 @@ def on_change(e):
         players[0].money.set(players[0].money.get()-amount)
         e.widget.destroy()
         gameinfo.set(players[0].name+" bets "+str(amount))
-        pot.set(pot.get()+amount)	
+        pot.set(pot.get()+amount)
+
+    msg = 'call'+players[0].name+str(amount)
+    client_socket.sendto(msg.encode(),addr)
+    	
 
 def create_players(window,card1,card2):      
     global call,fold
@@ -181,7 +187,7 @@ Server Messages
     add_card           "theriver,card5"                                   displays fifth card
     other_player_call  "other_call,player_name,amount"                    the player who called and how much money 
     other_player_fold  "other_fold,player_name"                           the player who folded
-    round_over         "round_over,winner_name,all cards"                 who won the round, display all other players' cards
+    round_over         "round_over,winner_name,all cards"                 who won the round, display all other players' cards and then remove
     player_elim        "player_elim,player_name"                          a player who got eliminated(include if condition if you get eliminated)
     game_over          "game_over,winner_name"                            who won the game
 ''' 
@@ -213,7 +219,11 @@ def server_listen(window): #listens for messages from server
     window.after(10,server_listen,window) #calls itself every 10 milliseconds listening for messages from server
 
 def main():
-    global gameinfo,pot,cards
+    global gameinfo,pot,cards,client_socket,addr
+    ip = '127.0.0.1'  #change later
+    port = 12000
+    addr = (ip,port)
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     num = list(range(1,11))
     num[0] = 'ace';
     num.extend(['jack','queen','king'])

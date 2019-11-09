@@ -18,7 +18,7 @@ def gen_game(nplayers): # readies cards for players and table
     player = [[] for i in range(nplayers)]
     table = []
     deck=list(DECK)
-    random.shuffle(deck)
+    #random.shuffle(deck)
     table=deck[:5]
     for i in range(nplayers):
         player[i].append(deck[5+i])
@@ -34,8 +34,9 @@ def winner(player,table):
         hands[i].extend(table1)
         score=eval7(hands[i])
         scores.append(score)
+    print(scores)
     print("player",scores.index(min(scores))+1,"is the winner")
-    return scores.index(max(scores))
+    return scores.index(min(scores))
 
 def hash_function(x):
     x += 0xe91aaa35
