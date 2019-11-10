@@ -22,31 +22,31 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind(('',port))
 
 #pre-game
-def broadcast_players(players):
+def broadcast_players(players_game):
 	#broadcasting player names and giving players cards
 	player_cards=[]
 	random.shuffle(deck)
 	x=0
-	for i in range(len(players)):
+	for i in range(len(players_game)):
 		reply='create_players,'
 		player_cards.append(deck[x:x+2])
 		card1, card2 = deck[x:x+2]
 		reply=reply+player_cards[i][0]+','+player_cards[i][1]+','
-		for j in range(len(players)):
+		for j in range(len(players_game)):
 			if(j!=i):
-				reply=reply+players[j][0]+','       #list of player_names other than the player who it is being sent to
-		server_socket.sendto(reply.encode(), (players[i][1],port))
+				reply=reply+players_game[j][0]+','       #list of player_names other than the player who it is being sent to
+		server_socket.sendto(reply.encode(), (players_game[i][1],port))
 		x+=2
 	return player_cards,x  #for future cards		
 
-def players_turn(players):
-	for i in range(len(players)):
-		msg = 'turn,'+players[i][0]
-		server_socket.sendto(msg.encode(), (players[i][1],port))
+def players_turn(players_round):
+	for i in range(len(players_round)):
+		msg = 'turn,'+players_round[i][0]
+		server_socket.sendto(msg.encode(), (players_round[i][1],port))
 		reply, clientAddress = server_socket.recvfrom(2048)
 		reply=str(reply).split(',')
 		if(reply[0]=='call'):
-			for j in range(len(players)):
+			for j in range(len(players)): #players because sent to everyone
 				if(j!=i):
 					msg = 'other_call,'+reply[1]+','reply[2]
 					server_socket.sendto(msg.encode(), (players[j][1],port))
@@ -56,11 +56,10 @@ def players_turn(players):
 					msg = 'other_fold,'+reply[1]
 					server_socket.sendto(msg.encode(), (players[j][1],port))
 				else: #player who folded
-					#remove player who folded
-					players.remove(players[j])
-				if(len(players)==1):
-					return players
-	return players #modified by removing players who have folded
+					players_round.remove(players_round[j])
+				if(len(players_round)==1):
+					return players_round
+	return players_round #modified by removing players who have folded
 
 #adds cards to the table
 def update_table(players,x,t,round_in_progress,table_cards):
@@ -141,7 +140,7 @@ while(len(players!=5)):
 		fold
 		not eliminated
 '''
-
+global players
 game_in_progress=True
 players_game = players.deepcopy() #players in the game
 while(game_in_progress):
@@ -167,16 +166,14 @@ while(game_in_progress):
 	for i in range(len(players)):
 		server_socket.sendto(msg.encode(), (players[i][1],port))
 
-	for i in range(players):
+	for i in range(len(players_game)):
 		msg, clientAddress = server_socket.recvfrom(2048)
 		msg = msg.split(',')
 		if(msg[0]=='eliminated'):
 			reply = 'player_elim' + msg[1]
+			players_game.remove(players_game[i])
 			for j in range(len(players)):
-				if(j==i): #modify players_game by removing eliminated player
-					players_game.remove(players_game[j])
 				server_socket.sendto(msg.encode(), (players[j][1],port))
-
 
 	if(len(players_game) == 1):
 		game_in_progress = False
