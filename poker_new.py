@@ -144,17 +144,21 @@ def create_players(window,msg):
     p5.create_image(window,"back","back",1120,420,1160,420)        
     players=[p1,p2,p3,p4,p5]
 
-def other_player_fold(player_who_folded):
+def other_player_fold(player_who_folded_name):
+    player_who_folded = get_player(player_who_folded_name)
     player_who_folded.playerLabel.config(fg="yellow")
     gameinfo.set(player_who_folded.name+ "has folded")
 
-def other_player_call(player_who_called,amount):
+def other_player_call(player_who_called_name,amount):
+    player_who_called = get_player(player_who_called_name)
+    amount=int(amount)
     pot_change = pot.get()+amount
     pot.set(pot_change)
     player_who_called.money.set(player_who_called.money.get()-amount)
     gameinfo.set(player_who_called.name+" has called "+ str(amount))
 
-def turn(player):
+def turn(player_name):
+    player = get_player(player_name) 
     if player.name == players[0].name:
         call["state"] = "normal"
         fold["state"] = "normal"
@@ -177,7 +181,9 @@ def change_card(player,new_card1,new_card2):
     player.card2_image_label.configure(image=player.card2_image)
 
 def player_elim(player_name):
-    pass
+    player = get_player(player_name)
+    player.playerLabel.config(bg="white")
+    gameinfo.set(player_name + " has been eliminated!")
 
 def round_over(msg):
     pass        
@@ -194,13 +200,20 @@ Server Messages
     other_player_call  "other_call,player_name,amount"                    the player who called and how much money 
     other_player_fold  "other_fold,player_name"                           the player who folded
     round_over         "round_over,winner_name,all cards"                 who won the round, display all other players' cards and then remove
-    player_elim        "player_elim,player_name"                          a player who got eliminated(include if condition if you get eliminated)
+    player_elim        "player_elim,player_name"                          a player who got eliminated
     game_over          "game_over,winner_name"                            who won the game
 ''' 
 def server_listen(window): #listens for messages from server
     
     #msg="game_over,player5"
-    try:
+
+    if('card_1_image' not in globals()):
+        table_cards(window,'KC','2H','AD' )
+    if('players' not in globals()):
+        create_players(window,['create_players','KC','QS','p1','p2','p3','p4','p5'])
+
+    player_elim('p3')
+    try: #check if there is a message, if no message jump to except
         msg, serverIP = client_socket.recvfrom(2048)
         #msg='theflop,2H,2C,2D'   #Example Message
         msg=msg.split(',')
@@ -238,11 +251,16 @@ def server_listen(window): #listens for messages from server
         else:
             pass    
     except:
-        #send message if elim or not elim
         pass
     finally:
         window.after(10,server_listen,window) #calls itself every 10 milliseconds listening for messages from server
     
+
+def get_player(player_name):  #returns player object given player name
+    for i in players:
+        if i.name==player_name:
+            return i
+
 def join_game():
     popup = Tk()
     popup.title("Enter name")
@@ -266,12 +284,7 @@ def main():
     port = 12000
     addr = (ip,port)
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    client_socket.setblocking(0)
-    #num = list(range(1,11))
-    #num[0] = 'A';
-    #num.extend(['J','Q','K'])
-    #suit = ['C','D','H','S']
-    #cards = [str(j)+i for i in suit for j in num]
+    client_socket.setblocking(0) #non-blocking
 
     join_game()
     window = Tk()

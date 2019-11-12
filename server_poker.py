@@ -33,8 +33,8 @@ def broadcast_players(players_game):
 		card1, card2 = deck[x:x+2]
 		reply=reply+player_cards[i][0]+','+player_cards[i][1]+','
 		for j in range(len(players_game)):
-			if(j!=i):
-				reply=reply+players_game[j][0]+','       #list of player_names other than the player who it is being sent to
+			reply=reply+players_game[j][0]+','       #list of player_names
+		players = players[1:] + players[:1]  #rotating list so that each player will get their own name first	
 		server_socket.sendto(reply.encode(), (players_game[i][1],port))
 		x+=2
 	return player_cards,x  #for future cards		
