@@ -8,6 +8,7 @@ class Player:
         self.money=IntVar()
         self.money.set(100)
         self.name=name
+        self.is_elim=False
 
     def create_label(self,window,*args):
         self.moneyLabel = Label(window, textvariable = self.money, bg="black", fg="red", font = "Arial 20 bold")
@@ -85,8 +86,8 @@ def add_card(window,cardnum,card): #displaying turn and river
         gameinfo.set("River")
 
 def folded():
-    msg = 'fold'+players[0].name
-    #client_socket.sendto(msg.encode(),addr)
+    msg = 'fold'+','+players[0].name
+    client_socket.sendto(msg.encode(),addr)
 
     players[0].playerLabel.config(fg="yellow")
     gameinfo.set(players[0].name+" folds")
@@ -109,8 +110,8 @@ def on_change(e):
         gameinfo.set(players[0].name+" bets "+str(amount))
         pot.set(pot.get()+amount)
 
-    msg = 'call'+players[0].name+str(amount)
-    #client_socket.sendto(msg.encode(),addr)
+    msg = 'call'+','+players[0].name+','+str(amount)
+    client_socket.sendto(msg.encode(),addr)
     	
 
 def create_players(window,msg):      
@@ -123,26 +124,34 @@ def create_players(window,msg):
     fold.pack(side = "bottom")
 
     global players
-    p1 = Player(msg[3])
+    p1 = Player(msg[1])
     p1.create_label(window)
-    p1.create_image(window,msg[1],msg[2],640,550,600,550)
 
-    p2 = Player(msg[4])
+    p2 = Player(msg[2])
     p2.create_label(window,0,500,0,470)
-    p2.create_image(window,"back","back",5,420,45,420)
 
-    p3 = Player(msg[5])
-    p3.create_label(window,0,120,0,90)
-    p3.create_image(window,"back","back",5,40,45,40)
+    p3 = Player(msg[3])
+    p3.create_label(window,0,120,0,90)     
 
-    p4 = Player(msg[6])
+    p4 = Player(msg[4])
     p4.create_label(window,1120,120,1120,90)
-    p4.create_image(window,"back","back",1120,40,1160,40)
 
-    p5 = Player(msg[7])
+    p5 = Player(msg[5])
     p5.create_label(window,1120,500,1120,470)
-    p5.create_image(window,"back","back",1120,420,1160,420)        
+    
     players=[p1,p2,p3,p4,p5]
+    gameinfo.set("The game has started!")
+
+def give_cards(window,card1,card2):
+    players[0].create_image(window,card1,card2,640,550,600,550)
+    if(not(players[1].is_elim)):
+        players[1].create_image(window,"back","back",5,420,45,420)
+    if(not(players[2].is_elim)):
+        players[2].create_image(window,"back","back",5,40,45,40)
+    if(not(players[3].is_elim)):
+        players[3].create_image(window,"back","back",1120,40,1160,40)
+    if(not(players[4].is_elim)):
+        players[4].create_image(window,"back","back",1120,420,1160,420)   
 
 def other_player_fold(player_who_folded_name):
     player_who_folded = get_player(player_who_folded_name)
@@ -183,16 +192,38 @@ def change_card(player,new_card1,new_card2):
 def player_elim(player_name):
     player = get_player(player_name)
     player.playerLabel.config(bg="white")
+    player.is_elim = True
     gameinfo.set(player_name + " has been eliminated!")
 
 def round_over(msg):
-    pass        
-
+    gameinfo.set(msg[1]+" has won the round! Resetting table")
+    player = get_player(msg[1])
+    player.money.set(player.money.get() + pot.get())
+    pot.set(0) 
+    k = 0
+    for i in range (2,len(msg)-1,2):
+        if(players[k].is_elim):  #if player is eliminated they will not have cards to show
+            continue
+        change_card(players[k],msg[i],msg[i+1])
+        k+=1
+    if(players[0].money.get() == 0):
+        msg = 'eliminated'+players[0].name
+    else:
+        msg = 'not_eliminated'
+    client_socket.sendto(msg.encode(),addr)
+    if(card_1_image):
+        del card_1_image, card_2_image, card_3_image
+        del card_1_image_label, card_2_image_label, card_3_image_label
+    if(card_4_image):
+        del card_4_image, card_4_image_label
+    if(card_river_image): 
+        del card_river_image, card_river_image_label
 '''
 Server Messages
     function               message from server                              comments
 
-    create_players     "create_players,card1,card2,player_names_list"     displays all player cards
+    create_players     "create_players,player_names_list"                 Creates players
+    give_cards         "give_cards,card1,card2"                           Gives cards to players
     turn               "turn,player_name"                                 which player's turn it currently is
     table_cards        "theflop,card1,card2,card3"                        displays 3 cards on table
     add_card           "theturn,card4"                                    displays fourth card
@@ -204,8 +235,8 @@ Server Messages
     game_over          "game_over,winner_name"                            who won the game
 ''' 
 def server_listen(window): #listens for messages from server
-    
-    #msg="game_over,player5"
+    '''    
+    msg="game_over,player5"
 
     if('card_1_image' not in globals()):
         table_cards(window,'KC','2H','AD' )
@@ -213,25 +244,21 @@ def server_listen(window): #listens for messages from server
         create_players(window,['create_players','KC','QS','p1','p2','p3','p4','p5'])
 
     player_elim('p3')
+    msg = ['round_over','p4','KC','QS','AD','AD','AD','AD','AD','AD','AD','AD']
+    round_over(msg)
+    '''
     try: #check if there is a message, if no message jump to except
         msg, serverIP = client_socket.recvfrom(2048)
         #msg='theflop,2H,2C,2D'   #Example Message
-        msg=msg.split(',')
-        '''
-        change_card(players[2],'2C','QH')     
-        if(flags[1] and 'card_1_image' not in globals()):  #if flag is set and the image is not yet created
-            table_cards(window,'KC','2H','AD' )
-        if(flags[2] and 'card_4_image' not in globals()):
-            add_card(window,4,'2C')
-        if(flags[3] and 'card_river_image' not in globals()):
-            add_card(window,5,'5C')  
-        '''
+        msg=msg.decode().split(',')
+
         if(msg[0]=="game_over"):
             gameinfo.set(i.name+" has won the game!")
             window.after(5000,game_over,window) #end game after 5 seconds 
         elif(msg[0]=='create_players'):
-            create_players(window,msg) #list contains cards and other players' names
-            gameinfo.set("The game has started!")
+            create_players(window,msg) #list other players' names
+        elif(msg[0]=='give_cards'):
+            give_cards(window,msg[1],msg[2])
         elif(msg[0]=='turn'):
             turn(msg[1])
         elif(msg[0]=='theflop'):
@@ -274,8 +301,8 @@ def get_name(e):
     popup = e.widget.master
     popup.destroy()
 
-    #msg = 'join' + pname
-    #client_socket.sendto(msg.encode(),addr)
+    msg = 'join' + ',' + pname
+    client_socket.sendto(msg.encode(),addr)
 
 
 def main():

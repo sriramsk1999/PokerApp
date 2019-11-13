@@ -23,27 +23,32 @@ server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_socket.bind(('',port))
 
 #pre-game
-def broadcast_players(players_game):
-	#broadcasting player names and giving players cards
+def broadcast_players(players):
+	#broadcasting player names
+	for i in range(len(players)):
+		reply='create_players,'
+		for j in range(len(players)):
+			reply=reply+players[j][0]+','       #list of player_names
+		server_socket.sendto(reply.encode(), players[i][1])
+		players = players[1:] + players[:1]  #rotating list so that each player will get their own name first	
+
+def give_cards(players_game):
+	#giving players cards
 	player_cards=[]
 	random.shuffle(deck)
-	temp_players = players_game.deepcopy()  #a temporary list used for rotating names
 	x=0
 	for i in range(len(players_game)):
-		reply='create_players,'
+		reply='give_cards,'
 		player_cards.append(deck[x:x+2])
-		reply=reply+player_cards[i][0]+','+player_cards[i][1]+','
-		for j in range(len(temp_players)):
-			reply=reply+temp_players[j][0]+','       #list of player_names
-		server_socket.sendto(reply.encode(), (players_game[i][1],port))  #players_game because this list should not be rotated
-		temp_players = temp_players[1:] + temp_players[:1]  #rotating list so that each player will get their own name first	
-		x+=2
+		reply=reply+player_cards[i][0]+','+player_cards[i][1]
+		server_socket.sendto(reply.encode(), players_game[i][1])  #players_game because this list should not be rotated
+		x+=2	
 	return player_cards,x  #for future cards		
 
 def players_turn(players_round,score_cards):
 	for i in range(len(players_round)):
 		msg = 'turn,'+players_round[i][0]
-		server_socket.sendto(msg.encode(), (players_round[i][1],port))
+		server_socket.sendto(msg.encode(), players_round[i][1])
 
 		#reply
 		reply, clientAddress = server_socket.recvfrom(2048)
@@ -51,13 +56,13 @@ def players_turn(players_round,score_cards):
 		if(reply[0]=='call'):
 			for j in range(len(players)): #players because sent to everyone
 				if(j!=i):
-					msg = 'other_call,'+reply[1]+','reply[2]
-					server_socket.sendto(msg.encode(), (players[j][1],port))
+					msg = 'other_call,'+reply[1]+','+reply[2]
+					server_socket.sendto(msg.encode(), players[j][1])
 		else:	
 			for j in range(len(players)):
 				if(j!=i):
 					msg = 'other_fold,'+reply[1]
-					server_socket.sendto(msg.encode(), (players[j][1],port))
+					server_socket.sendto(msg.encode(), players[j][1],port)
 				else: #player who folded
 					players_round.remove(players_round[j])
 					score_cards.remove(score_cards[j])
@@ -85,7 +90,7 @@ def update_table(x,t,round_in_progress,table_cards):
 		msg = 'theriver'+river	
 		x+=1
 	for i in range(len(players)):
-		server_socket.sendto(msg.encode(), (players[i][1],port))	
+		server_socket.sendto(msg.encode(), players[i][1])	
 	if(t>3): #round_over
 		round_in_progress=False
 	return x,round_in_progress,table_cards
@@ -126,9 +131,12 @@ def eval7(hand):
     return min(eval5(x) for x in itertools.combinations(hand, 5))
 
 #players joining room
+global players
 players = [] #list of tuples of the form - (playerName,clientAddress)
-while(len(players!=5)):
+print("Waiting....")
+while(len(players)!=5):
 	msg, clientAddress = server_socket.recvfrom(2048)
+	msg=msg.decode()
 	msg=str(msg).split(',')
 	if(msg[0]=='join'):
 		players.append((msg[1],clientAddress))
@@ -145,17 +153,17 @@ while(len(players!=5)):
 		fold
 		not eliminated
 '''
-global players
 game_in_progress=True
-players_game = players.deepcopy() #players in the game
+players_game = players.copy() #players in the game
+broadcast_players(players)
 while(game_in_progress):
 
-	player_cards, x = broadcast_players(players_game) 
-	score_cards = player_cards.deepcopy()   #variable which will be modified when people fold, used to decide winner
+	player_cards, x = give_cards(players_game) 
+	score_cards = player_cards.copy()   #variable which will be modified when people fold, used to decide winner
 	table_cards = []
 	round_in_progress=True
 	t=1
-	players_round = players_game.deepcopy()   #active players in a round
+	players_round = players_game.copy()   #active players in a round
 
 	while(round_in_progress):
 		players_round, score_cards = players_turn(players_round,score_cards)
@@ -170,7 +178,7 @@ while(game_in_progress):
 		else:
 			x = winner(score_cards,table_cards)
 			msg = 'round_over' + players_round[x][0] + player_cards
-		server_socket.sendto(msg.encode(), (players[i][1],port))
+		server_socket.sendto(msg.encode(), players[i][1])
 		player_cards = player_cards[1:] + player_cards[:1]   #rotating list
 
 	for i in range(len(players_game)):
@@ -180,12 +188,12 @@ while(game_in_progress):
 			reply = 'player_elim' + msg[1]
 			players_game.remove(players_game[i])
 			for j in range(len(players)):
-				server_socket.sendto(msg.encode(), (players[j][1],port))
+				server_socket.sendto(msg.encode(), players[j][1])
 
 	if(len(players_game) == 1):
 		game_in_progress = False
 		msg = 'game_over'+players_game[0][0]
 		for i in range(len(players)):
-			server_socket.sendto(msg.encode(), (players[i][1],port))
+			server_socket.sendto(msg.encode(), players[i][1])
 
 	time.sleep(3)
