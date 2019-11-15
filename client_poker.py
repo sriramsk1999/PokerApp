@@ -2,6 +2,7 @@ from tkinter import *
 from PIL import ImageTk, Image
 import string
 import socket
+import time
 
 class Player:
     def __init__(self,name):
@@ -46,6 +47,7 @@ def table_cards(window,card1,card2,card3):
 
     #initial 3 cards to display. [Flop]
     global card_1_image,card_2_image,card_3_image
+    global card_1_image_label,card_2_image_label,card_3_image_label
 
     card_1_image = Image.open("images/"+card1+".jpg")
     card_1_image = card_1_image.resize((70, 80), Image.ANTIALIAS)
@@ -69,6 +71,7 @@ def table_cards(window,card1,card2,card3):
 
 def add_card(window,cardnum,card): #displaying turn and river
     global card_4_image,card_river_image
+    global card_4_image_label,card_river_image_label
     if(cardnum==4):
         card_4_image = Image.open("images/"+card+".jpg")
         card_4_image = card_4_image.resize((70, 80), Image.ANTIALIAS)
@@ -85,14 +88,21 @@ def add_card(window,cardnum,card): #displaying turn and river
         card_river_image_label.place(x = 730, y = 250)
         gameinfo.set("River")
 
-def folded():
+def folded(window):
     msg = 'fold'+','+players[0].name
     client_socket.sendto(msg.encode(),addr)
 
     players[0].playerLabel.config(fg="yellow")
-    gameinfo.set(players[0].name+" folds")
+    gameinfo.set(players[0].name+" has folded")
     call["state"] = "disabled"
     fold["state"] = "disabled"
+
+    l = [str(i) for i in window.winfo_children()]
+    for i in l:
+        if(i.startswith('.!entry')):
+            i = window.nametowidget(i)
+            i.destroy()
+            break
 
 def called(window): #on button click
     l = [str(i) for i in window.winfo_children()] #window.winfo_children() returns list of all widgets in the winodw
@@ -107,11 +117,12 @@ def on_change(e):
         e.widget.delete(0, END)
         players[0].money.set(players[0].money.get()-amount)
         e.widget.destroy()
-        gameinfo.set(players[0].name+" bets "+str(amount))
+        gameinfo.set(players[0].name+" has called "+str(amount))
         pot.set(pot.get()+amount)
-
-    msg = 'call'+','+players[0].name+','+str(amount)
-    client_socket.sendto(msg.encode(),addr)
+        call["state"] = "disabled"
+        fold["state"] = "disabled"
+        msg = 'call'+','+players[0].name+','+str(amount)
+        client_socket.sendto(msg.encode(),addr)
     	
 
 def create_players(window,msg):      
@@ -119,11 +130,12 @@ def create_players(window,msg):
     call = Button(window, text = "Call", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = lambda: called(window))
     call["state"] = "disabled"   #disabled on startup until it is your turn
     call.pack(side = "bottom")
-    fold = Button(window, text = "Fold", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = folded)
+    fold = Button(window, text = "Fold", highlightbackground = "red", fg = "black", width = 8, activebackground = "black", activeforeground = "red", command = lambda: folded(window))
     fold["state"] = "disabled"
     fold.pack(side = "bottom")
 
     global players
+    #print(msg)
     p1 = Player(msg[1])
     p1.create_label(window)
 
@@ -156,9 +168,11 @@ def give_cards(window,card1,card2):
 def other_player_fold(player_who_folded_name):
     player_who_folded = get_player(player_who_folded_name)
     player_who_folded.playerLabel.config(fg="yellow")
-    gameinfo.set(player_who_folded.name+ "has folded")
+    gameinfo.set(player_who_folded.name+ " has folded")
 
 def other_player_call(player_who_called_name,amount):
+    if(player_who_called_name == players[0].name): #do not execute if you called
+        return
     player_who_called = get_player(player_who_called_name)
     amount=int(amount)
     pot_change = pot.get()+amount
@@ -167,7 +181,11 @@ def other_player_call(player_who_called_name,amount):
     gameinfo.set(player_who_called.name+" has called "+ str(amount))
 
 def turn(player_name):
-    player = get_player(player_name) 
+    player = get_player(player_name)
+    if(players[0].money.get()==0):
+        msg = "allin,"+player.name
+        client_socket.sendto(msg.encode(),addr)
+        return
     if player.name == players[0].name:
         call["state"] = "normal"
         fold["state"] = "normal"
@@ -195,8 +213,8 @@ def player_elim(player_name):
     player.is_elim = True
     gameinfo.set(player_name + " has been eliminated!")
 
-def round_over(msg):
-    gameinfo.set(msg[1]+" has won the round! Resetting table")
+def round_over(window, msg):
+    gameinfo.set(msg[1]+" has won the round!")
     player = get_player(msg[1])
     player.money.set(player.money.get() + pot.get())
     pot.set(0) 
@@ -206,18 +224,31 @@ def round_over(msg):
             continue
         change_card(players[k],msg[i],msg[i+1])
         k+=1
-    if(players[0].money.get() == 0):
-        msg = 'eliminated'+players[0].name
-    else:
-        msg = 'not_eliminated'
-    client_socket.sendto(msg.encode(),addr)
-    if(card_1_image):
-        del card_1_image, card_2_image, card_3_image
-        del card_1_image_label, card_2_image_label, card_3_image_label
-    if(card_4_image):
-        del card_4_image, card_4_image_label
-    if(card_river_image): 
-        del card_river_image, card_river_image_label
+    window.after(2000,reset_table)
+
+def reset_table():   
+    for i in range(len(players)):
+        if(not(players[i].is_elim)):
+            players[i].card1_image_label.destroy()
+            players[i].card2_image_label.destroy()
+            players[i].playerLabel.config(fg="red")
+
+    if(not(players[0].is_elim)):        
+        if(players[0].money.get() == 0):
+            msg = 'eliminated,'+players[0].name
+        else:
+            msg = 'not_eliminated,'+players[0].name
+        client_socket.sendto(msg.encode(),addr)
+    if('card_1_image' in globals()):
+        card_1_image_label.destroy()
+        card_2_image_label.destroy()
+        card_3_image_label.destroy()
+    if('card_4_image' in globals()):
+        card_4_image_label.destroy()
+    if('card_river_image' in globals()): 
+        card_river_image_label.destroy()
+    gameinfo.set("Readying for next round")    
+
 '''
 Server Messages
     function               message from server                              comments
@@ -235,25 +266,13 @@ Server Messages
     game_over          "game_over,winner_name"                            who won the game
 ''' 
 def server_listen(window): #listens for messages from server
-    '''    
-    msg="game_over,player5"
-
-    if('card_1_image' not in globals()):
-        table_cards(window,'KC','2H','AD' )
-    if('players' not in globals()):
-        create_players(window,['create_players','KC','QS','p1','p2','p3','p4','p5'])
-
-    player_elim('p3')
-    msg = ['round_over','p4','KC','QS','AD','AD','AD','AD','AD','AD','AD','AD']
-    round_over(msg)
-    '''
     try: #check if there is a message, if no message jump to except
         msg, serverIP = client_socket.recvfrom(2048)
         #msg='theflop,2H,2C,2D'   #Example Message
         msg=msg.decode().split(',')
 
         if(msg[0]=="game_over"):
-            gameinfo.set(i.name+" has won the game!")
+            gameinfo.set(msg[1]+" has won the game!")
             window.after(5000,game_over,window) #end game after 5 seconds 
         elif(msg[0]=='create_players'):
             create_players(window,msg) #list other players' names
@@ -272,7 +291,7 @@ def server_listen(window): #listens for messages from server
         elif(msg[0]=='other_fold'):
             other_player_fold(msg[1])
         elif(msg[0]=='round_over'):
-            round_over(msg) #passing the whole list because we don't know how many cards are being sent
+            round_over(window,msg) #passing the whole list because we don't know how many cards are being sent
         elif(msg[0]=='player_elim'):
             player_elim(msg[1])
         else:
@@ -301,7 +320,7 @@ def get_name(e):
     popup = e.widget.master
     popup.destroy()
 
-    msg = 'join' + ',' + pname
+    msg = 'join,' + pname
     client_socket.sendto(msg.encode(),addr)
 
 
